@@ -2,10 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import '../styles/ArcReactor.css';
 
+const MotionDiv = motion.div;
+
 const ArcReactor = ({ isListening, isSpeaking }) => {
   return (
     <div className="arc-container">
-      <motion.div
+      <MotionDiv
         className="arc-core"
         animate={{
           scale: isListening ? [1, 1.1, 1] : 1,
@@ -22,7 +24,7 @@ const ArcReactor = ({ isListening, isSpeaking }) => {
         <div className="arc-ring outer-ring"></div>
         <div className="arc-ring inner-ring"></div>
         <div className="arc-center"></div>
-      </motion.div>
+      </MotionDiv>
       <div className="status-text">
         {isListening ? "LISTENING..." : isSpeaking ? "PROCESSING..." : "ONLINE"}
       </div>
