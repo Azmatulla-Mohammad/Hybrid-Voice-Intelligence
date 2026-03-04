@@ -100,6 +100,10 @@ class SystemSkill:
             return None
 
     @staticmethod
+    def get_system_info():
+        return f"Running on {platform.system()} {platform.release()} ({platform.machine()})."
+
+    @staticmethod
     def shutdown_system():
         if platform.system() == "Windows":
              os.system("shutdown /s /t 1")

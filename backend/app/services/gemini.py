@@ -1,11 +1,12 @@
+import asyncio
 import google.generativeai as genai
-from ..core.config import settings
 import PIL.Image
 
-# Configuration
-genai.configure(api_key=settings.GEMINI_API_KEY)
+from ..core.config import settings
+from ..core.logging import get_logger
 
-# Persona
+logger = get_logger(__name__)
+
 SYSTEM_PROMPT = """
 You are EDITH (Even Dead I'm The Hero), an advanced AI assistant.
 Your goal is to be helpful, witty, and conversational, like a real human assistant.
@@ -18,32 +19,35 @@ You represent the pinnacle of Stark technology. Be confident but polite.
 If asked to do something you can't (like physical actions), explain clearly.
 """
 
-model = genai.GenerativeModel('gemini-2.0-flash-lite-001', system_instruction=SYSTEM_PROMPT)
+if settings.GEMINI_API_KEY:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-2.0-flash-lite-001", system_instruction=SYSTEM_PROMPT)
+else:
+    model = None
 
-# Helper to manage chat sessions
-# Retry decorator for 429 errors
-import time
-import asyncio
 
-async def generate_response(prompt: str, image_path: str = None, history: list = []):
+async def generate_response(prompt: str, image_path: str = None, history: list | None = None):
+    if model is None:
+        return "AI mode is unavailable because GEMINI_API_KEY is not configured."
+
     max_retries = 3
     base_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             if image_path:
-                import PIL.Image
                 img = PIL.Image.open(image_path)
                 response = model.generate_content([prompt, img])
             else:
                 chat = model.start_chat(history=history or [])
                 response = chat.send_message(prompt)
-                
             return response.text
-        except Exception as e:
-            if "429" in str(e) and attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt)
-                print(f"429 Quota Exceeded. Retrying in {delay}s...")
+        except Exception as exc:
+            if "429" in str(exc) and attempt < max_retries - 1:
+                delay = base_delay * (2**attempt)
+                logger.warning("429 from Gemini API. Retrying in %ss", delay)
                 await asyncio.sleep(delay)
                 continue
-            return f"Error communicating with EDITH intelligence: {str(e)}"
+
+            logger.exception("Gemini call failed", exc_info=exc)
+            return "I couldn't reach the AI service, so I can only run local commands right now."

@@ -38,7 +38,7 @@ function App() {
       </div>
 
       <div className="instructions">
-        TAP SCREEN OR PRESS CTRL+SPACE TO SPEAK
+        SAY "HEY EDITH" OR PRESS CTRL+SPACE TO SPEAK
       </div>
     </div>
   );
