@@ -85,7 +85,9 @@ function App() {
         ))}
       </div>
 
-      <div className="instructions">TAP ANYWHERE OR PRESS CTRL+SPACE • SAY “HEY EDITH”</div>
+      <div className="instructions">
+        SAY "HEY EDITH" OR PRESS CTRL+SPACE TO SPEAK
+      </div>
     </div>
   );
 }

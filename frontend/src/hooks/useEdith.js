@@ -111,7 +111,6 @@ const useEdith = () => {
         messages,
         startListening,
         stopSpeaking,
-        submitCommand: processCommand,
     };
 };
 
