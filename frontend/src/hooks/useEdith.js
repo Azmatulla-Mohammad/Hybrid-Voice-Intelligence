@@ -6,11 +6,8 @@ const WAKE_WORDS = ['edith', 'hey edith'];
 const useEdith = () => {
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
     const [messages, setMessages] = useState([]);
-    const [speechSupported, setSpeechSupported] = useState(true);
     const recognitionRef = useRef(null);
-    const restartRef = useRef(true);
 
     const stopSpeaking = useCallback(() => {
         if (window.speechSynthesis.speaking) {
@@ -21,7 +18,6 @@ const useEdith = () => {
 
     const speak = useCallback((text) => {
         stopSpeaking();
-
         const utterance = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
         const preferredVoice = voices.find((voice) => voice.name.includes('Google US English')) || voices[0];
@@ -36,15 +32,11 @@ const useEdith = () => {
     }, [stopSpeaking]);
 
     const processCommand = useCallback(async (command) => {
-        const cleanCommand = command.trim();
-        if (!cleanCommand) return;
-
-        setMessages((prev) => [...prev, { text: cleanCommand, sender: 'user' }]);
-        setIsProcessing(true);
+        setMessages((prev) => [...prev, { text: command, sender: 'user' }]);
 
         try {
-            const response = await axios.post('http://localhost:8000/chat', { message: cleanCommand });
-            const aiResponse = response?.data?.response || 'Command executed.';
+            const response = await axios.post('http://localhost:8000/chat', { message: command });
+            const aiResponse = response.data.response;
             setMessages((prev) => [...prev, { text: aiResponse, sender: 'edith' }]);
             speak(aiResponse);
         } catch (error) {
@@ -52,19 +44,15 @@ const useEdith = () => {
             const fallback = "I can't reach the backend right now. I can still listen for your next command.";
             setMessages((prev) => [...prev, { text: fallback, sender: 'edith' }]);
             speak(fallback);
-        } finally {
-            setIsProcessing(false);
         }
     }, [speak]);
 
     useEffect(() => {
         if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
             console.error('Speech Recognition not supported in this browser.');
-            setSpeechSupported(false);
             return undefined;
         }
 
-        setSpeechSupported(true);
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
@@ -73,20 +61,14 @@ const useEdith = () => {
         recognitionRef.current = recognition;
 
         recognition.onstart = () => setIsListening(true);
-
         recognition.onend = () => {
-            if (!restartRef.current) {
-                setIsListening(false);
-                return;
-            }
-
-            // Keep the visual state stable during auto-restart.
-            setIsListening(true);
-            try {
-                recognition.start();
-            } catch (error) {
-                setIsListening(false);
-                console.warn('Recognition restart skipped:', error);
+            setIsListening(false);
+            if (!isSpeaking) {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.warn('Recognition restart skipped:', error);
+                }
             }
         };
 
@@ -102,7 +84,7 @@ const useEdith = () => {
                     return text.slice(wakeWord.length).trim();
                 }
                 return text;
-            }, lower).replace(/^[\s,.:;-]+/, '');
+            }, lower);
 
             if (command.length > 0) {
                 processCommand(command);
@@ -112,35 +94,23 @@ const useEdith = () => {
         try {
             recognition.start();
         } catch (error) {
-            setIsListening(false);
             console.warn('Recognition start skipped:', error);
         }
-
-        return () => {
-            restartRef.current = false;
-            recognition.stop();
-        };
-    }, [processCommand]);
+        return () => recognition.stop();
+    }, [isSpeaking, processCommand]);
 
     const startListening = () => {
         if (recognitionRef.current && !isListening) {
-            try {
-                recognitionRef.current.start();
-            } catch (error) {
-                console.warn('Manual recognition start skipped:', error);
-            }
+            recognitionRef.current.start();
         }
     };
 
     return {
         isListening,
         isSpeaking,
-        isProcessing,
         messages,
-        speechSupported,
         startListening,
         stopSpeaking,
-        submitCommand: processCommand,
     };
 };
 
