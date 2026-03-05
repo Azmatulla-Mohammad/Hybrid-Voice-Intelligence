@@ -5,29 +5,23 @@ import '../styles/ArcReactor.css';
 const MotionDiv = motion.div;
 
 const ArcReactor = ({ isListening, isSpeaking }) => {
+  const mode = isListening ? 'LISTENING' : isSpeaking ? 'SPEAKING' : 'STANDBY';
+
   return (
     <div className="arc-container">
       <MotionDiv
-        className="arc-core"
+        className={`arc-core ${isListening ? 'listening' : ''} ${isSpeaking ? 'speaking' : ''}`}
         animate={{
-          scale: isListening ? [1, 1.1, 1] : 1,
-          boxShadow: isListening 
-            ? "0px 0px 60px 20px rgba(0, 217, 255, 0.8)" 
-            : "0px 0px 30px 10px rgba(0, 217, 255, 0.4)"
+          scale: isListening ? [1, 1.08, 1] : isSpeaking ? [1, 1.04, 1] : 1,
         }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="arc-ring outer-ring"></div>
-        <div className="arc-ring inner-ring"></div>
-        <div className="arc-center"></div>
+        <div className="arc-ring outer-ring" />
+        <div className="arc-ring mid-ring" />
+        <div className="arc-ring inner-ring" />
+        <div className="arc-center" />
       </MotionDiv>
-      <div className="status-text">
-        {isListening ? "LISTENING..." : isSpeaking ? "PROCESSING..." : "ONLINE"}
-      </div>
+      <div className="status-text">{mode}</div>
     </div>
   );
 };

@@ -1,16 +1,18 @@
+import datetime
 import os
-import subprocess
-import webbrowser
 import platform
+import subprocess
+import urllib.parse
+import webbrowser
+
 
 class SystemSkill:
     @staticmethod
     def open_application(app_name: str):
         app_name = app_name.lower().strip()
         system = platform.system()
-        
+
         if system == "Windows":
-            # Map common names to process names/commands
             app_map = {
                 "notepad": "notepad.exe",
                 "calculator": "calc.exe",
@@ -36,19 +38,19 @@ class SystemSkill:
                     else:
                         subprocess.Popen(cmd, shell=True)
                     return f"Opening {app_name}."
-                else:
-                    # Fallback: Try generic start
-                    os.system(f"start {app_name}")
-                    return f"Attempting to launch {app_name}."
-            except Exception as e:
-                return f"Failed to open {app_name}: {str(e)}"
+
+                os.system(f"start {app_name}")
+                return f"Attempting to launch {app_name}."
+            except Exception as exc:
+                return f"Failed to open {app_name}: {str(exc)}"
+
         return "OS not fully supported."
 
     @staticmethod
     def close_application(app_name: str):
         app_name = app_name.lower().strip()
         system = platform.system()
-        
+
         if system == "Windows":
             process_map = {
                 "notepad": "notepad.exe",
@@ -62,9 +64,14 @@ class SystemSkill:
             }
             process_name = process_map.get(app_name, f"{app_name}.exe")
             try:
-                subprocess.run(["taskkill", "/F", "/IM", process_name], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(
+                    ["taskkill", "/F", "/IM", process_name],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return f"Closed {app_name}."
-            except:
+            except Exception:
                 return f"Could not close {app_name}."
         return "OS not fully supported."
 
@@ -77,22 +84,99 @@ class SystemSkill:
 
     @staticmethod
     def search_google(query: str):
-        url = f"https://www.google.com/search?q={query}"
+        if not query:
+            webbrowser.open("https://www.google.com")
+            return "Opening Google."
+        encoded = urllib.parse.quote_plus(query)
+        url = f"https://www.google.com/search?q={encoded}"
         webbrowser.open(url)
         return f"Searching Google for {query}."
 
     @staticmethod
+    def search_youtube(query: str):
+        encoded = urllib.parse.quote_plus(query)
+        url = f"https://www.youtube.com/results?search_query={encoded}"
+        webbrowser.open(url)
+        return f"Searching YouTube for {query}."
+
+    @staticmethod
     def play_music(query: str):
-        url = f"https://www.youtube.com/results?search_query={query}"
+        query = query or "music"
+        encoded = urllib.parse.quote_plus(query)
+        url = f"https://www.youtube.com/results?search_query={encoded}"
         webbrowser.open(url)
         return f"Playing music: {query} on YouTube."
+
+    @staticmethod
+    def open_folder(path_or_name: str):
+        target = path_or_name.strip().strip('"')
+        if platform.system() == "Windows":
+            os.system(f'start "" "{target}"')
+            return f"Opening folder {target}."
+        return "Folder opening is currently optimized for Windows."
+
+    @staticmethod
+    def search_local_files(term: str):
+        if platform.system() == "Windows":
+            os.system(f'start "" "search-ms:query={term}"')
+            return f"Searching local files for {term}."
+        return "Local file search is currently optimized for Windows."
+
+    @staticmethod
+    def restart_system():
+        if platform.system() == "Windows":
+            os.system("shutdown /r /t 1")
+        return "Restarting system."
+
+    @staticmethod
+    def lock_system():
+        if platform.system() == "Windows":
+            os.system("rundll32.exe user32.dll,LockWorkStation")
+            return "Locking your system."
+        return "Lock system is currently optimized for Windows."
+
+    @staticmethod
+    def set_volume(level: int):
+        if level < 0 or level > 100:
+            return "Please provide a volume level between 0 and 100."
+        # Placeholder without OS-specific dependency.
+        return f"Volume command received: set to {level}%."
+
+    @staticmethod
+    def get_weather(location: str):
+        query = location or "current location"
+        webbrowser.open(f"https://www.google.com/search?q=weather+{urllib.parse.quote_plus(query)}")
+        return f"Fetching weather for {query}."
+
+    @staticmethod
+    def get_news_headlines(topic: str = "latest"):
+        query = f"{topic} news headlines"
+        webbrowser.open(f"https://news.google.com/search?q={urllib.parse.quote_plus(query)}")
+        return f"Fetching news headlines for {topic}."
+
+    @staticmethod
+    def now_datetime():
+        now = datetime.datetime.now()
+        return now.strftime("Today is %A, %d %B %Y. The current time is %I:%M %p.")
+
+    @staticmethod
+    def run_terminal_command(command: str):
+        command = command.strip()
+        if not command:
+            return "Please provide a terminal command to run."
+        try:
+            completed = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=12)
+            output = (completed.stdout or completed.stderr or "No output").strip()
+            return f"Command exit code {completed.returncode}. Output: {output[:300]}"
+        except Exception as exc:
+            return f"Failed to run terminal command: {str(exc)}"
 
     @staticmethod
     def capture_screen():
         try:
             from PIL import ImageGrab
+
             screenshot = ImageGrab.grab()
-            # Save to a temporary file in current dir
             temp_path = os.path.join(os.getcwd(), "screenshot_temp.png")
             screenshot.save(temp_path)
             return temp_path
@@ -100,13 +184,17 @@ class SystemSkill:
             return None
 
     @staticmethod
+    def get_system_info():
+        return f"Running on {platform.system()} {platform.release()} ({platform.machine()})."
+
+    @staticmethod
     def shutdown_system():
         if platform.system() == "Windows":
-             os.system("shutdown /s /t 1")
+            os.system("shutdown /s /t 1")
         return "Shutting down system."
 
     @staticmethod
     def sleep_system():
         if platform.system() == "Windows":
-             os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
         return "Putting system to sleep."
