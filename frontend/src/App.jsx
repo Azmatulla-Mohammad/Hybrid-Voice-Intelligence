@@ -57,7 +57,43 @@ function App() {
         ))}
       </div>
 
-      <ArcReactor isListening={isListening} isSpeaking={isSpeaking} />
+      <ArcReactor isListening={isListening || isProcessing} isSpeaking={isSpeaking} />
+
+      <div className="right-panel">
+        <h3>QUICK COMMANDS</h3>
+        {QUICK_COMMANDS.map((cmd) => (
+          <button
+            key={cmd}
+            className="quick-command"
+            onClick={(e) => {
+              e.stopPropagation();
+              submitCommand(cmd);
+            }}
+            type="button"
+          >
+            {`Hey Edith, ${cmd}`}
+          </button>
+        ))}
+
+        <div className="manual-console">
+          <input
+            value={manualCommand}
+            onChange={(e) => setManualCommand(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            placeholder="Type command..."
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              submitCommand(manualCommand);
+              setManualCommand('');
+            }}
+          >
+            EXECUTE
+          </button>
+        </div>
+      </div>
 
       <div className="right-panel">
         <h3>QUICK COMMANDS</h3>
