@@ -1,32 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import ArcReactor from './components/ArcReactor';
 import useEdith from './hooks/useEdith';
 
 const QUICK_COMMANDS = [
-  'open github',
-  'search youtube for arc reactor build',
-  'set reminder team call at 7 PM',
-  'what is the time',
+  'Hey Edith, open github',
+  'Hey Edith, search youtube for arc reactor build',
+  'Hey Edith, set reminder team call at 7 PM',
+  'Hey Edith, what is the time',
 ];
 
 function App() {
-  const edithState = useEdith();
-  const {
-    isListening = false,
-    isSpeaking = false,
-    isProcessing = false,
-    startListening = () => {},
-    submitCommand = () => {},
-    speechSupported = true,
-    messages = [],
-  } = edithState || {};
-
-  const [manualCommand, setManualCommand] = useState('');
+  const { isListening, isSpeaking, startListening, submitCommand, messages } = useEdith();
 
   const latest = messages[messages.length - 1];
-  const cpuState = isProcessing || isSpeaking ? 'HIGH LOAD' : isListening ? 'AUDIO ACTIVE' : 'STABLE';
+  const cpuState = isSpeaking ? 'HIGH LOAD' : isListening ? 'AUDIO ACTIVE' : 'STABLE';
   const networkState = latest?.text?.toLowerCase().includes("can't reach the backend") ? 'DEGRADED' : 'SECURE';
-  const mode = isProcessing ? 'PROCESSING' : isSpeaking ? 'RESPONSE MODE' : isListening ? 'ACTIVE LISTEN' : 'PASSIVE SCAN';
+  const mode = isListening ? 'ACTIVE LISTEN' : isSpeaking ? 'RESPONSE MODE' : 'PASSIVE SCAN';
 
   const telemetry = useMemo(
     () => [
@@ -74,7 +63,6 @@ function App() {
             <strong>{item.value}</strong>
           </div>
         ))}
-        {!speechSupported && <div className="warning">Speech recognition unsupported: use manual command mode.</div>}
       </div>
 
       <ArcReactor isListening={isListening || isProcessing} isSpeaking={isSpeaking} />
@@ -102,10 +90,34 @@ function App() {
             onClick={(e) => e.stopPropagation()}
             placeholder="Type command..."
           />
-          <button type="button" onClick={executeManualCommand}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              submitCommand(manualCommand);
+              setManualCommand('');
+            }}
+          >
             EXECUTE
           </button>
         </div>
+      </div>
+
+      <div className="right-panel">
+        <h3>QUICK COMMANDS</h3>
+        {QUICK_COMMANDS.map((cmd) => (
+          <button
+            key={cmd}
+            className="quick-command"
+            onClick={(e) => {
+              e.stopPropagation();
+              submitCommand(cmd.replace('Hey Edith, ', ''));
+            }}
+            type="button"
+          >
+            {cmd}
+          </button>
+        ))}
       </div>
 
       <div className="message-container">
@@ -117,7 +129,9 @@ function App() {
         ))}
       </div>
 
-      <div className="instructions">TAP ANYWHERE OR PRESS CTRL+SPACE • SAY “HEY EDITH” • OR TYPE COMMAND</div>
+      <div className="instructions">
+        SAY "HEY EDITH" OR PRESS CTRL+SPACE TO SPEAK
+      </div>
     </div>
   );
 }

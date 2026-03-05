@@ -183,36 +183,3 @@ body {
     display: none;
   }
 }
-
-
-.warning {
-  margin-top: 0.8rem;
-  color: #ffc27a;
-  font-size: 0.72rem;
-}
-
-.manual-console {
-  margin-top: 0.7rem;
-  display: flex;
-  gap: 0.35rem;
-}
-
-.manual-console input {
-  flex: 1;
-  border: 1px solid rgba(109, 217, 255, 0.44);
-  background: rgba(5, 15, 26, 0.9);
-  color: #d6f5ff;
-  border-radius: 0.35rem;
-  padding: 0.48rem 0.55rem;
-  font-size: 0.75rem;
-}
-
-.manual-console button {
-  border: 1px solid rgba(109, 217, 255, 0.6);
-  background: rgba(8, 32, 49, 0.92);
-  color: #9ceeff;
-  border-radius: 0.35rem;
-  padding: 0.48rem 0.6rem;
-  font-size: 0.7rem;
-  cursor: pointer;
-}
