@@ -1,10 +1,9 @@
 fastapi
 uvicorn
-google-generativeai
+google-genai
 sqlalchemy
 psycopg2-binary
 python-dotenv
 requests
 pydantic
 pillow
-sqlalchemy

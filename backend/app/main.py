@@ -5,9 +5,11 @@ from .services.skill_router import SkillRouter
 from .core.config import settings
 from .core.database import engine, Base
 from .models import sql
+from .core.logging import setup_logging
 
 # Create Tables
 Base.metadata.create_all(bind=engine)
+setup_logging()
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
