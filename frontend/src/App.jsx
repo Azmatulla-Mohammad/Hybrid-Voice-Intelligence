@@ -37,6 +37,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [startListening]);
 
+  const executeManualCommand = (e) => {
+    e.stopPropagation();
+    const trimmed = manualCommand.trim();
+    if (!trimmed) return;
+    submitCommand(trimmed);
+    setManualCommand('');
+  };
+
   return (
     <div className="app-container" onClick={startListening}>
       <div className="bg-grid" />
