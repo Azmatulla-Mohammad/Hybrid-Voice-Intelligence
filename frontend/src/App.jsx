@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.code === 'Space') {
-        startListening();
+        startListening?.();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
